@@ -1,1 +1,42 @@
 # tech notes for Unix/Linux, and Shell
+
+# use xargs to run jobs parallelly
+
+    find . -name 'SRR*.fastq'  | grep -v 'filtered_' | xargs -I '{}' -n 1 -P 5 fastq_quality_filter -Q 33 -q 1 -p 100 -i '{}' -o '{}'.filtered.fastq
+    find . -name 'SRR*.fastq'  | grep -v 'filtered_' | xargs -I '{}' -n 1 --max-procs=5 myfilter '{}'
+    find . -name 'SRR*.fastq'  | grep -v 'filtered_' | xargs -I 'FILE' -n 1 --max-procs=5 echo 'FILE' | echo 'FILE'jfkdlasjfs
+  
+    xargs: -I 'STR'                use 'STR' to substitute args
+           -n 1                    use 1 arg once
+           -P 5 or --max-procs=5   run 5 jobs at maximium
+  
+    Note: xargs could not use shell ailas or shell functions
+  
+# use GNU parallel to run jobs parallelly
+  with hints from http://plindenbaum.blogspot.dk/2013/10/gnu-parallel-for-bioinformatics-my.html (very good for bioinf users)
+
+   ls 01.rawdata/*/*.fq.gz | parallel file
+   ls 01.rawdata/*/*.fq.gz | parallel ls  
+   ls 01.rawdata/*/*.fq.gz | parallel --dryrun  ls {} > {.}.md5
+   ls 01.rawdata/*/*.fq.gz | parallel -j 5 --dryrun md5sum {} '>' {}.md5sum
+   ls 01.rawdata/*/*.fq.gz | parallel -j 5 --progress  md5sum {} '>' {}.md5sum
+   ls 01.rawdata/*/*.fq.gz | parallel -j 5 --progress  --dryrun md5sum {} '>' tmp/{/}.md5sum
+   ls 01.rawdata/*/*.fq.gz | parallel -j 5 --progress  md5sum {} '>' tmp/{/}.md5sum
+   
+   Note: ">" should be quoted to prevent from being interpreted as redirection by shell.
+
+   GNU parallel:
+       --dryrun          don't actually run command
+       -j 5              run 5 jobs in parallel
+       --progress        show progress
+       -I STRING         set replacement string, default is '{}'
+       {}                place holder for input sources
+       {/}               removes the path 
+       {.}               removes the extension
+       {/.}              removes path and extension
+       {//}              keeps only the path
+       {#}               gives the job number
+       {number}          individual input columns could be specified with {1}, {2.}, {3//}, {4/.} et al. 
+
+
+    
